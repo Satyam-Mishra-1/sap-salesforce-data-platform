@@ -1,0 +1,47 @@
+# Gold Layer Views Creation Job
+resources:
+  jobs:
+    gold_views_refresh:
+      name: ${bundle.target}-demand-forecast-gold-views
+      
+      schedule:
+        quartz_cron_expression: "0 0 10 ? * MON"
+        timezone_id: "Asia/Calcutta"
+        pause_status: UNPAUSED
+      
+      tasks:
+        - task_key: create_gold_views
+          notebook_task:
+            notebook_path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/notebooks/create_gold_views.sql
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              silver_schema: ${var.silver_schema}
+              gold_schema: ${var.gold_schema}
+
+          timeout_seconds: 1800
+
+        - task_key: run_customer_segmentation
+          depends_on:
+            - task_key: create_gold_views
+          notebook_task:
+            notebook_path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/notebooks/customer_segmentation
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              gold_schema: ${var.gold_schema}
+
+          timeout_seconds: 1800
+      
+      max_concurrent_runs: 1
+      
+      email_notifications:
+        on_failure:
+          - vedanthbaliga21@gmail.com
+        on_success:
+          - vedanthbaliga21@gmail.com
+      
+      tags:
+        environment: ${bundle.target}
+        project: demand-forecast
+        layer: gold

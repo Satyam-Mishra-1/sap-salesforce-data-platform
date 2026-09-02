@@ -1,0 +1,36 @@
+# SAP Silver Layer Pipeline (Lakeflow Spark Declarative Pipeline)
+resources:
+  pipelines:
+    sap_silver_transform:
+      name: ${bundle.target}-demand-forecast-sap-silver
+      
+      catalog: ${var.catalog}
+      target: ${var.silver_schema}
+      
+      libraries:
+        - notebook:
+            path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/pipelines/silver/dim_customer_unified.py
+        - notebook:
+            path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/pipelines/silver/fact_sap_orders.py
+        - notebook:
+            path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/pipelines/silver/fact_customer_interactions.py
+      
+      configuration:
+        bronze_schema: ${var.bronze_schema}
+        silver_schema: ${var.silver_schema}
+      
+      continuous: false
+      
+      channel: CURRENT
+      
+      serverless: true
+      
+      development: ${ bundle.target == 'dev' }
+      
+      notifications:
+        - email_recipients:
+            - vedanthbaliga21@gmail.com
+          alerts:
+            - on-update-failure
+            - on-flow-failure
+      

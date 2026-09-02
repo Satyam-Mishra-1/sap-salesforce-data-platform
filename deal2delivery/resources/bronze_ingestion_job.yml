@@ -1,0 +1,42 @@
+# SAP HANA Bronze Data Ingestion Job
+resources:
+  jobs:
+    sap_bronze_ingestion:
+      name: ${bundle.target}-demand-forecast-sap-bronze-ingest
+      
+      schedule:
+        quartz_cron_expression: "0 0 9 ? * MON"
+        timezone_id: "Asia/Calcutta"
+        pause_status: UNPAUSED
+      
+      tasks:
+        - task_key: generate_sap_test_data
+          notebook_task:
+            notebook_path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/notebooks/sap_data_generation.py
+            source: WORKSPACE
+          
+          timeout_seconds: 3600
+        
+        - task_key: ingest_bronze_tables
+          depends_on:
+            - task_key: generate_sap_test_data
+          
+          notebook_task:
+            notebook_path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/notebooks/sap_bronze_ingestion.py
+            source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+          
+          timeout_seconds: 3600
+      
+      max_concurrent_runs: 1
+      
+      email_notifications:
+        on_failure:
+          - vedanthbaliga21@gmail.com
+      
+      tags:
+        environment: ${bundle.target}
+        project: demand-forecast
+        layer: bronze

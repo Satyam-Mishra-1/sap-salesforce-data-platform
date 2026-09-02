@@ -1,0 +1,70 @@
+# Databricks Asset Bundle (DAB) Configuration
+# Demand Forecast - Salesforce + SAP Integration Pipeline
+
+bundle:
+  name: demand-forecast
+  
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: demand-forecast
+  
+  bronze_schema:
+    description: Bronze layer schema
+    default: sap_bronze
+  
+  silver_schema:
+    description: Silver layer schema
+    default: silver
+  
+  gold_schema:
+    description: Gold presentation layer schema
+    default: gold_pres
+
+targets:
+  # Development environment
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-7babda03-fc54.cloud.databricks.com
+    
+    variables:
+      catalog: demand-forecast-dev
+    
+    run_as:
+      user_name: vedanthbaliga21@gmail.com
+  
+  # Staging environment
+  staging:
+    mode: production
+    workspace:
+      host: https://dbc-7babda03-fc54.cloud.databricks.com
+      root_path: /Workspace/.bundles/${bundle.name}/staging
+    
+    variables:
+      catalog: demand-forecast-staging
+    
+    run_as:
+      user_name: vedanthbaliga21@gmail.com
+  
+  # Production environment
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-7babda03-fc54.cloud.databricks.com
+      root_path: /Workspace/.bundles/${bundle.name}/prod
+    
+    variables:
+      catalog: demand-forecast
+    
+    run_as:
+      service_principal_name: sp-demand-forecast-stagin
+    
+    # Require manual approval for prod deployments
+    permissions:
+      - level: CAN_MANAGE
+        user_name: vedanthbaliga21@gmail.com

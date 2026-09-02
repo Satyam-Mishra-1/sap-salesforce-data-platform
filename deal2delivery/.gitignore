@@ -1,0 +1,56 @@
+# Databricks
+.databricks/
+*.pyc
+__pycache__/
+.DS_Store
+
+# Bundle state
+.bundle.lock
+.bundle/
+
+# Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+*.log
+
+# Test outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+.ai-dev-kit
+.claude
+.cursor
+.github/skills
+mlruns
+.mcp.json
+.databricks-resources.json
+deal2delivery-ui/node_modules/
+deal2delivery-ui/.env.local
+deal2delivery-ui/package-lock.json
+deal2delivery-ui/.next/

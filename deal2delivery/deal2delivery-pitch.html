@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal2Delivery — Databricks DAIS 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#C8C4BC;}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#C8C4BC;}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;
+  overflow:hidden;transform-origin:0 0;background:#F4F3EF;}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;
+  display:block;visibility:hidden;opacity:0;pointer-events:none;background:#F4F3EF;}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;}}
+
+:root{
+  --bg:      #F4F3EF;
+  --white:   #FFFFFF;
+  --accent:  #FF3621;
+  --accent-l:rgba(255,54,33,0.09);
+  --accent-m:rgba(255,54,33,0.2);
+  --ink:     #0F0F0F;
+  --ink-2:   #505060;
+  --ink-3:   #AAAAB8;
+  --border:  rgba(0,0,0,0.09);
+  --border-a:rgba(255,54,33,0.28);
+  --green:   #15803D;  --green-l: rgba(21,128,61,0.1);
+  --blue:    #1D4ED8;  --blue-l:  rgba(29,78,216,0.1);
+  --amber:   #B45309;  --amber-l: rgba(180,83,9,0.1);
+  --purple:  #6D28D9;  --purple-l:rgba(109,40,217,0.1);
+  --font-d:  'Archivo Black',sans-serif;
+  --font-b:  'Space Grotesk',sans-serif;
+  --mono:    'Space Grotesk',monospace;
+  --ease:    cubic-bezier(0.16,1,0.3,1);
+}
+
+.si{position:absolute;inset:0;padding:56px 88px;overflow:hidden;}
+.stripe{position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--accent);z-index:10;}
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.tb-n{font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);}
+.tb-l{font-family:var(--font-b);font-size:12px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--border);padding:8px 20px;border-radius:2px;}
+.eye{font-family:var(--font-b);font-size:13px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.h1{font-family:var(--font-d);line-height:.92;letter-spacing:-.03em;color:var(--ink);}
+.sep{width:48px;height:5px;background:var(--accent);}
+.pill{display:inline-block;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;padding:7px 16px;border:1px solid var(--border);color:var(--ink-2);border-radius:2px;}
+.pill-r{border-color:var(--border-a);color:var(--accent);background:var(--accent-l);}
+.tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:2px;font-family:var(--font-b);}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .5s var(--ease),transform .5s var(--ease);}
+.slide.visible .rv{opacity:1;transform:translateY(0);}
+.rv.d1{transition-delay:.06s}.rv.d2{transition-delay:.12s}.rv.d3{transition-delay:.18s}
+.rv.d4{transition-delay:.24s}.rv.d5{transition-delay:.30s}.rv.d6{transition-delay:.36s}
+
+/* Progress + counter */
+.progress-bar{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(0,0,0,.1);z-index:9999;}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s var(--ease);}
+.slide-counter{position:fixed;bottom:16px;right:26px;font-family:var(--font-b);font-size:12px;font-weight:500;letter-spacing:.2em;color:rgba(0,0,0,.3);z-index:9999;}
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:16px;left:16px;z-index:10001;background:var(--accent-l);border:1px solid var(--border-a);color:var(--accent);font-size:16px;width:38px;height:38px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+
+/* ── S04 INTELLIGENCE LAYER ANIMATIONS ── */
+@keyframes shimmer-sweep{
+  0%{background-position:-300% center}100%{background-position:300% center}
+}
+@keyframes blink-dot{
+  0%,100%{opacity:1}50%{opacity:.15}
+}
+@keyframes slide-l{
+  from{opacity:0;transform:translateX(-34px)}to{opacity:1;transform:translateX(0)}
+}
+@keyframes slide-r{
+  from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:translateX(0)}
+}
+@keyframes slide-u{
+  from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}
+}
+.ic{opacity:0;}
+#s04.visible .ic.al{animation:slide-l .52s var(--ease) both;}
+#s04.visible .ic.ar{animation:slide-r .52s var(--ease) both;}
+#s04.visible .ic.au{animation:slide-u .52s var(--ease) both;}
+.blink{animation:blink-dot 1.4s ease-in-out infinite;}
+.bar-f{width:0;transition:width 1.15s var(--ease);}
+#s04.visible .bar-f{width:var(--bw,70%);}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="slide-counter" id="slideCounter">1 / 5</div>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ══════════════════════════════════════
+  S01 — TITLE
+══════════════════════════════════════ -->
+<section class="slide active" id="s01">
+  <div class="stripe"></div>
+  <div class="si">
+    <div class="tb rv">
+      <span class="tb-n">Deal2Delivery · DAIS 2026</span>
+      <span class="tb-l">Databricks Community Virtual Hackathon</span>
+    </div>
+
+    <div class="eye rv d1">NovaTech Electronics · Unified SAP + Salesforce Demand Intelligence</div>
+
+    <div class="rv d2" style="font-family:var(--font-d);font-size:168px;line-height:.85;
+      letter-spacing:-.04em;color:var(--ink);margin-bottom:20px;">
+      Deal<span style="color:var(--accent);">2</span>Delivery
+    </div>
+
+    <div class="rv d3" style="font-family:var(--font-b);font-size:28px;font-weight:300;
+      color:var(--ink-2);line-height:1.5;max-width:980px;margin-bottom:44px;">
+      An electronics retailer where <strong style="color:var(--ink);font-weight:600;">Salesforce tracks every customer</strong>
+      and <strong style="color:var(--ink);font-weight:600;">SAP runs every warehouse</strong> —
+      but the two systems have never spoken. Deal2Delivery changes that.
+    </div>
+
+    <div class="rv d4" style="display:flex;gap:0;border:1px solid var(--border);
+      border-radius:6px;overflow:hidden;background:var(--white);width:fit-content;margin-bottom:36px;">
+      <div style="padding:20px 52px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:var(--font-d);font-size:52px;color:var(--ink);letter-spacing:-.02em;line-height:1;">120+</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:6px;">SKUs Tracked</div>
+      </div>
+      <div style="padding:20px 52px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:var(--font-d);font-size:52px;color:var(--ink);letter-spacing:-.02em;line-height:1;">$14M</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:6px;">Annual Revenue</div>
+      </div>
+      <div style="padding:20px 52px;text-align:center;border-right:1px solid var(--border);">
+        <div style="font-family:var(--font-d);font-size:52px;color:var(--ink);letter-spacing:-.02em;line-height:1;">3</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:6px;">ML Models</div>
+      </div>
+      <div style="padding:20px 52px;text-align:center;">
+        <div style="font-family:var(--font-d);font-size:52px;color:var(--ink);letter-spacing:-.02em;line-height:1;">6</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:6px;">App Pages on Vercel</div>
+      </div>
+    </div>
+
+    <div class="rv d5" style="display:flex;gap:10px;flex-wrap:wrap;">
+      <span class="pill pill-r">Databricks Lakehouse</span>
+      <span class="pill">SAP HANA ERP</span>
+      <span class="pill">Salesforce CRM</span>
+      <span class="pill">XGBoost · K-Means · Optuna</span>
+      <span class="pill">Genie AI/BI · LLM-as-a-Judge</span>
+      <span class="pill">Next.js on Vercel</span>
+      <span class="pill">GitHub Actions + DABs</span>
+    </div>
+
+    <div class="rv d6" style="position:absolute;bottom:56px;right:88px;
+      font-family:var(--font-b);font-size:13px;color:var(--ink-3);letter-spacing:.1em;">
+      vedanthvbaliga@gmail.com
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  S02 — STORY
+══════════════════════════════════════ -->
+<section class="slide" id="s02">
+  <div class="stripe"></div>
+  <div class="si" style="padding-top:56px;">
+
+    <div class="tb rv">
+      <span class="tb-n">02 / 05 · NovaTech Electronics</span>
+      <span class="tb-l">Four Real Scenarios from Operations</span>
+    </div>
+
+    <!-- Headline -->
+    <div class="rv d1" style="font-family:var(--font-d);font-size:72px;line-height:.88;
+      letter-spacing:-.035em;color:var(--ink);margin-bottom:14px;">
+      Every week, four things go wrong.<br>
+      <span style="color:var(--accent);">Nobody sees any of them coming.</span>
+    </div>
+    <div class="rv d2" style="font-family:var(--font-b);font-size:20px;font-weight:300;
+      color:var(--ink-2);margin-bottom:32px;line-height:1.5;">
+      Salesforce knows the customers. SAP knows the warehouse.
+      <strong style="color:var(--ink);font-weight:600;">The two systems have never talked.</strong>
+    </div>
+
+    <!-- 4 scenario cards — horizontal row -->
+    <div class="rv d3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;
+        padding:28px 26px;border-top:3px solid var(--accent);display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:30px;">📦</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Monday</div>
+        <div style="font-family:var(--font-b);font-size:18px;font-weight:700;color:var(--ink);line-height:1.2;">The GPU reorder never fires.</div>
+        <div style="font-family:var(--font-b);font-size:16px;color:var(--ink-2);line-height:1.6;">80 gaming GPU orders land in Salesforce over the weekend. SAP sees nothing. Stock hits zero by noon. The reorder fires three days too late.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;
+        padding:28px 26px;border-top:3px solid var(--accent);display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:30px;">🔕</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Tuesday</div>
+        <div style="font-family:var(--font-b);font-size:18px;font-weight:700;color:var(--ink);line-height:1.2;">A loyal customer quietly leaves.</div>
+        <div style="font-family:var(--font-b);font-size:16px;color:var(--ink-2);line-height:1.6;">Three warranty cases on a premium TV — escalating in SAP for six weeks. Nobody in Salesforce knew. The customer churns and the account is marked lost.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;
+        padding:28px 26px;border-top:3px solid var(--accent);display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:30px;">📊</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Wednesday</div>
+        <div style="font-family:var(--font-b);font-size:18px;font-weight:700;color:var(--ink);line-height:1.2;">Christmas stock ordered on gut feel.</div>
+        <div style="font-family:var(--font-b);font-size:16px;color:var(--ink-2);line-height:1.6;">Procurement picks holiday laptop quantities from memory — no lag features, no ML. 400 units of the wrong model arrive in November. Dead stock until March.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;
+        padding:28px 26px;border-top:3px solid var(--accent);display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:30px;">🤖</div>
+        <div style="font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Thursday</div>
+        <div style="font-family:var(--font-b);font-size:18px;font-weight:700;color:var(--ink);line-height:1.2;">"Why is this customer High Risk?"</div>
+        <div style="font-family:var(--font-b);font-size:16px;color:var(--ink-2);line-height:1.6;">The model flagged them. The manager wants to act. Nobody can open the black box. No intervention happens. The at-risk account is lost.</div>
+      </div>
+
+    </div>
+
+    <!-- Root cause: SAP ⟺ SF silo — compact horizontal -->
+    <div class="rv d4" style="display:grid;grid-template-columns:1fr auto 1fr auto auto;
+      align-items:center;gap:0;background:var(--white);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+
+      <div style="padding:20px 28px;display:flex;align-items:center;gap:14px;">
+        <img src="https://cdn.simpleicons.org/salesforce/00A1E0" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;"
+          onerror="this.outerHTML='<div style=\'width:32px;height:32px;background:#00A1E0;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;\'>SF</div>'">
+        <div>
+          <div style="font-family:var(--font-d);font-size:17px;color:var(--ink);margin-bottom:4px;">Salesforce CRM</div>
+          <div style="font-family:var(--font-b);font-size:13px;color:var(--green);font-weight:600;">Knows: accounts, cases, deals</div>
+          <div style="font-family:var(--font-b);font-size:13px;color:var(--accent);font-weight:600;">Blind to: stock, reorders, fulfilment</div>
+        </div>
+      </div>
+
+      <div style="padding:0 24px;display:flex;flex-direction:column;align-items:center;gap:4px;border-left:1px solid var(--border);border-right:1px solid var(--border);height:100%;justify-content:center;">
+        <div style="font-size:26px;color:var(--accent);">⟺</div>
+        <div style="font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);">No link</div>
+      </div>
+
+      <div style="padding:20px 28px;display:flex;align-items:center;gap:14px;">
+        <img src="https://cdn.simpleicons.org/sap/0070F2" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;"
+          onerror="this.outerHTML='<div style=\'width:32px;height:32px;background:#0070F2;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;\'>SAP</div>'">
+        <div>
+          <div style="font-family:var(--font-d);font-size:17px;color:var(--ink);margin-bottom:4px;">SAP HANA ERP</div>
+          <div style="font-family:var(--font-b);font-size:13px;color:var(--green);font-weight:600;">Knows: stock, SKUs, suppliers, orders</div>
+          <div style="font-family:var(--font-b);font-size:13px;color:var(--accent);font-weight:600;">Blind to: churn risk, demand spikes</div>
+        </div>
+      </div>
+
+      <div style="width:1px;background:var(--border);align-self:stretch;"></div>
+
+      <!-- Closing punch inside the bar -->
+      <div style="background:var(--accent);padding:20px 36px;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:4px;">
+        <div style="font-family:var(--font-d);font-size:19px;color:#fff;line-height:1.15;">Deal2Delivery<br>fixes all four.</div>
+        <div style="font-family:var(--font-b);font-size:12px;color:rgba(255,255,255,.75);font-weight:500;">Unified on Databricks Lakehouse</div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  S03 — ARCHITECTURE + DATA PLATFORM (merged, technical)
+  Top: Architecture flow diagram
+  Bottom band: per-tier technical callouts
+══════════════════════════════════════ -->
+<section class="slide" id="s03">
+  <div class="stripe"></div>
+  <div class="si" style="padding-top:52px;">
+    <div class="tb rv">
+      <span class="tb-n">03 / 05 · Architecture · Databricks Data Platform</span>
+      <span class="tb-l">Delta Lake · Lakeflow DLT · Unity Catalog · DABs</span>
+    </div>
+
+    <div class="eye rv d1">SAP + Salesforce → Bronze (CDF) → Silver (DLT) → Gold (8 views) → ML → Dual Consumption</div>
+    <div class="h1 rv d2" style="font-size:46px;margin-bottom:14px;">Full-stack Lakehouse — every component wired.</div>
+    <div class="sep rv d2" style="margin-bottom:18px;"></div>
+
+    <!-- Architecture flow -->
+    <div class="rv d3" style="display:flex;align-items:stretch;gap:0;height:390px;margin-bottom:18px;">
+
+      <!-- SOURCES -->
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center;width:160px;flex-shrink:0;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">Sources</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:flex;align-items:center;gap:10px;flex:1;">
+          <img src="https://cdn.simpleicons.org/sap/0070F2" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;"
+            onerror="this.outerHTML='<div style=\'width:32px;height:32px;background:#0070F2;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;\'>SAP</div>'">
+          <div>
+            <div style="font-family:var(--font-b);font-size:14px;font-weight:700;color:var(--ink);">SAP HANA</div>
+            <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);">Stock · Orders · SKUs</div>
+          </div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:flex;align-items:center;gap:10px;flex:1;">
+          <img src="https://cdn.simpleicons.org/salesforce/00A1E0" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;"
+            onerror="this.outerHTML='<div style=\'width:32px;height:32px;background:#00A1E0;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;\'>SF</div>'">
+          <div>
+            <div style="font-family:var(--font-b);font-size:14px;font-weight:700;color:var(--ink);">Salesforce CRM</div>
+            <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);">Accounts · Cases</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;padding:0 8px;color:var(--accent);font-size:22px;flex-shrink:0;">→</div>
+
+      <!-- BRONZE -->
+      <div style="width:160px;flex-shrink:0;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">Bronze</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid var(--amber);border-radius:6px;padding:14px;height:362px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:2px;">sap_bronze · CDF</div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);margin-bottom:6px;">Weekly · Mon 9AM</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">kna1_customers</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">vbak_orders</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">vbap_order_items</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">zcust_interactions</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;">mard_stock</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;padding:0 8px;color:var(--accent);font-size:22px;flex-shrink:0;">→</div>
+
+      <!-- SILVER -->
+      <div style="width:174px;flex-shrink:0;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">Silver DLT</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid #6B7280;border-radius:6px;padding:14px;height:362px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#6B7280;margin-bottom:2px;">Lakeflow · Serverless</div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);margin-bottom:6px;">DQ expectations · Mon 9:30</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">dim_customer_unified</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">fact_sap_orders</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">fact_interactions</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">fact_opportunity</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;">fact_case</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;padding:0 8px;color:var(--accent);font-size:22px;flex-shrink:0;">→</div>
+
+      <!-- GOLD -->
+      <div style="width:218px;flex-shrink:0;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">Gold</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid #D4A017;border-radius:6px;padding:14px;height:362px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#D4A017;margin-bottom:2px;">gold_pres · Mon 10AM</div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);margin-bottom:6px;">8 views · SQL Cache 24h</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">gold_customer_360</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">gold_demand_vs_supply_gap</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">gold_product_demand_forecast</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">metrics_customer_health</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">churn_predictions</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--blue);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">demand_forecast_predictions</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--green);padding:3px 0;">customer_segments</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;padding:0 8px;color:var(--accent);font-size:22px;flex-shrink:0;">→</div>
+
+      <!-- ML -->
+      <div style="width:180px;flex-shrink:0;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">ML · UC</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid var(--purple);border-radius:6px;padding:14px;height:362px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--purple);margin-bottom:2px;">MLflow + UC @champion</div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-3);margin-bottom:6px;">Optuna · 5-fold CV</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">Churn XGBoost v2</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--blue);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">Demand XGBoost</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--green);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">K-Means k=5</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;border-bottom:1px solid rgba(0,0,0,.05);">MLflow Tracing</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:3px 0;">DABs 3-env CI/CD</div>
+        </div>
+      </div>
+
+      <!-- Fork -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px;color:var(--accent);font-size:18px;flex-shrink:0;padding-top:28px;">
+        <span style="margin-top:-80px;">↗</span>
+        <span style="margin-top:80px;">↘</span>
+      </div>
+
+      <!-- Consumption -->
+      <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:center;margin-bottom:4px;">Consumption</div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid var(--amber);border-radius:6px;padding:16px;flex:1;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">Internal · Databricks</div>
+          <div style="font-family:var(--font-b);font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;">Genie AI/BI</div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-2);line-height:1.5;">NL → SQL · LLM-as-a-Judge · Lakeview Dashboard</div>
+        </div>
+        <div style="background:var(--white);border:1px solid var(--border);border-top:3px solid var(--green);border-radius:6px;padding:16px;flex:1;">
+          <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);margin-bottom:6px;">External · Vercel</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <img src="https://cdn.simpleicons.org/nextdotjs/111111" style="width:16px;height:16px;" onerror="this.style.display='none'">
+            <div style="font-family:var(--font-b);font-size:14px;font-weight:700;color:var(--ink);">Next.js App</div>
+          </div>
+          <div style="font-family:var(--font-b);font-size:12px;color:var(--ink-2);line-height:1.5;">SQL REST API · GPT-4o · ISR Cache · public URL</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Technical callout band -->
+    <div class="rv d4" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+
+      <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:5px;">Bronze + Unity Catalog</div>
+        <div style="font-family:var(--font-b);font-size:13px;color:var(--ink-2);line-height:1.5;">Change Data Feed on all 5 SAP Delta tables. UC governs schema + 3 ML models with <code style="font-size:12px;background:#f0ede6;padding:1px 4px;border-radius:2px;">@champion</code> alias. Databricks Job every Monday 9AM.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid #6B7280;border-radius:4px;padding:14px 16px;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#6B7280;margin-bottom:5px;">Lakeflow DLT · Serverless</div>
+        <div style="font-family:var(--font-b);font-size:13px;color:var(--ink-2);line-height:1.5;">Declarative pipeline joins SAP KNA1 + Salesforce accounts → <code style="font-size:12px;background:#f0ede6;padding:1px 4px;border-radius:2px;">dim_customer_unified</code>. DQ expectations: dropNull on keys, warnOnZero on order qty.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid #D4A017;border-radius:4px;padding:14px 16px;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#D4A017;margin-bottom:5px;">Gold · SQL Result Cache</div>
+        <div style="font-family:var(--font-b);font-size:13px;color:var(--ink-2);line-height:1.5;"><code style="font-size:12px;background:#f0ede6;padding:1px 4px;border-radius:2px;">gold_demand_vs_supply_gap</code> joins 6-month ML forecast with live SAP MARD stock. Critical / Warning / OK per SKU. 24h SQL Result Cache — zero repeat DBUs.</div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:4px;padding:14px 16px;">
+        <div style="font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--purple);margin-bottom:5px;">DABs · GitHub Actions CI/CD</div>
+        <div style="font-family:var(--font-b);font-size:13px;color:var(--ink-2);line-height:1.5;">All jobs, pipelines, cluster configs in YAML. Push to <code style="font-size:12px;background:#f0ede6;padding:1px 4px;border-radius:2px;">develop</code> → auto-deploy dev. Push <code style="font-size:12px;background:#f0ede6;padding:1px 4px;border-radius:2px;">main</code> → staging. Prod = manual approval + separate service principal.</div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  S04 — JUDGING CRITERIA
+══════════════════════════════════════ -->
+<section class="slide" id="s05">
+  <div class="stripe"></div>
+  <div class="si">
+    <div class="tb rv">
+      <span class="tb-n">04 / 05 · Why Deal2Delivery</span>
+      <span class="tb-l">Judging Criteria</span>
+    </div>
+
+    <div class="eye rv d1">Unique · Practical · Deep on Databricks</div>
+    <div class="h1 rv d2" style="font-size:58px;margin-bottom:18px;">Answered directly.</div>
+    <div class="sep rv d3" style="margin-bottom:28px;"></div>
+
+    <div class="rv d4" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-bottom:22px;">
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--font-d);font-size:54px;color:var(--accent);opacity:.2;line-height:1;">01</div>
+        <div style="font-family:var(--font-b);font-size:19px;font-weight:700;color:var(--ink);line-height:1.3;">Fresh approach — new way of solving the problem?</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>No tool unifies SAP + Salesforce for electronics retail on a governed Lakehouse with ML + dual consumption layer</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>5-signal composite churn label replaces naive case-count threshold</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>LLM-as-a-Judge eval loop on Genie — self-healing via Claude Opus on Model Serving</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>What-if Scenario Simulator: adjust demand by category in real time via SQL multiplier</span></div>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--font-d);font-size:54px;color:var(--accent);opacity:.2;line-height:1;">02</div>
+        <div style="font-family:var(--font-b);font-size:19px;font-weight:700;color:var(--ink);line-height:1.3;">Real problem with practical value?</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>Dead stock &amp; stockouts solved — 6-month ML forecast vs live SAP MARD inventory</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>Silent churn caught early — XGBoost flags at-risk before they leave</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>Sales team uses the public Next.js app — no Databricks login needed</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>11 specific business problems each mapped to a Databricks solution</span></div>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:6px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--font-d);font-size:54px;color:var(--accent);opacity:.2;line-height:1;">03</div>
+        <div style="font-family:var(--font-b);font-size:19px;font-weight:700;color:var(--ink);line-height:1.3;">Platform leverage — how deep did we go?</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>Delta Lake · Unity Catalog · Lakeflow DLT · Genie AI/BI · Lakeview Dashboards</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>MLflow Experiments + Tracing (SpanType) + UC Model Registry @champion</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>Databricks Model Serving — Claude Opus for Genie auto-remediation</span></div>
+          <div style="display:flex;gap:8px;font-family:var(--font-b);font-size:15px;color:var(--ink-2);line-height:1.5;"><span style="color:var(--accent);font-weight:700;flex-shrink:0;">→</span><span>SQL Warehouse · Result Cache · Delta Cache · Asset Bundles · Serverless Compute</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="rv d5" style="background:var(--accent);border-radius:6px;padding:24px 36px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:var(--font-d);font-size:26px;color:#fff;letter-spacing:-.01em;">Deal2Delivery — built to close the gap. Permanently.</div>
+      <div style="font-family:var(--font-b);font-size:16px;color:rgba(255,255,255,.7);">vedanthvbaliga@gmail.com &nbsp;·&nbsp; Databricks DAIS 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+  S05 — DEMO (last)
+══════════════════════════════════════ -->
+<section class="slide" id="s06">
+  <div class="stripe"></div>
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="rv" style="font-family:var(--font-b);font-size:14px;font-weight:600;letter-spacing:.4em;text-transform:uppercase;color:var(--accent);margin-bottom:28px;">Live walkthrough</div>
+    <div class="rv d1" style="font-family:var(--font-d);font-size:260px;line-height:.85;letter-spacing:-.04em;color:var(--ink);">DEMO</div>
+    <div class="rv d2" style="font-family:var(--font-b);font-size:26px;font-weight:300;color:var(--ink-2);margin-top:32px;">Next.js App &nbsp;·&nbsp; Databricks Genie AI/BI</div>
+    <div class="rv d3" style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;justify-content:center;">
+      <span class="pill">Dashboard + GPT-4o Insights</span>
+      <span class="pill">Demand Forecast + Scenario Simulator</span>
+      <span class="pill">Inventory Gap — Critical / Warning / OK</span>
+      <span class="pill">Customer Risk + Segments</span>
+      <span class="pill pill-r">Genie AI/BI — Ask in Plain English</span>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit (E)">✏️</button>
+
+<script>
+(function(){
+  const slides=document.querySelectorAll('.slide'),stage=document.getElementById('deckStage'),
+        prog=document.getElementById('progressFill'),ctr=document.getElementById('slideCounter'),N=slides.length;
+  let cur=0;
+  function scale(){
+    const s=Math.min(window.innerWidth/1920,window.innerHeight/1080),
+          x=(window.innerWidth-1920*s)/2,y=(window.innerHeight-1080*s)/2;
+    stage.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+  }
+  scale(); window.addEventListener('resize',scale);
+  function go(n){
+    cur=Math.max(0,Math.min(n,N-1));
+    slides.forEach((s,i)=>{
+      const on=i===cur;
+      s.classList.toggle('active',on);
+      if(on) setTimeout(()=>s.classList.add('visible'),20);
+      else s.classList.remove('visible');
+    });
+    prog.style.width=((cur+1)/N*100)+'%';
+    ctr.textContent=(cur+1)+' / '+N;
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.target.getAttribute('contenteditable')) return;
+    if(['ArrowRight','ArrowDown',' ','Enter'].includes(e.key)){e.preventDefault();go(cur+1);}
+    if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+    if(e.key==='Home') go(0); if(e.key==='End') go(N-1);
+  });
+  let tx=0;
+  stage.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  stage.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){dx<0?go(cur+1):go(cur-1);}});
+  let wt=false;
+  window.addEventListener('wheel',e=>{if(wt)return;wt=true;e.deltaY>0?go(cur+1):go(cur-1);setTimeout(()=>{wt=false;},600);},{passive:true});
+  stage.addEventListener('click',e=>{
+    if(e.target.getAttribute('contenteditable')) return;
+    const r=stage.getBoundingClientRect();(e.clientX-r.left)/r.width>0.5?go(cur+1):go(cur-1);
+  });
+  go(0);
+  const tog=document.getElementById('editToggle'),hot=document.getElementById('editHotzone');
+  let ed=false,ht=null;
+  function toggleEdit(){
+    ed=!ed; tog.classList.toggle('active',ed);
+    document.querySelectorAll('.si *,[style]').forEach(el=>{
+      if(!el.children.length&&el.textContent.trim()) el.contentEditable=ed?'true':'false';
+    });
+  }
+  hot.addEventListener('mouseenter',()=>{clearTimeout(ht);tog.classList.add('show');});
+  hot.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!ed)tog.classList.remove('show');},400);});
+  tog.addEventListener('mouseenter',()=>clearTimeout(ht));
+  tog.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!ed)tog.classList.remove('show');},400);});
+  tog.addEventListener('click',e=>{e.stopPropagation();toggleEdit();});
+  hot.addEventListener('click',()=>toggleEdit());
+  document.addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable')) toggleEdit();});
+})();
+</script>
+</body>
+</html>

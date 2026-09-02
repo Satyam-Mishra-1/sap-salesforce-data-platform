@@ -1,0 +1,30 @@
+resources:
+  jobs:
+    log_ui_traces:
+      name: ${bundle.target}-log-ui-traces-to-mlflow
+
+      # Runs every 3 minutes — picks up new rows written by the Next.js app
+      # and logs them as MLflow traces using mlflow.start_span()
+      schedule:
+        quartz_cron_expression: "0 */3 * * * ?"
+        timezone_id: "Asia/Calcutta"
+        pause_status: UNPAUSED
+
+      tasks:
+        - task_key: log_ui_traces
+          notebook_task:
+            notebook_path: /Users/vedanthbaliga21@gmail.com/demand-forecast-dab/src/notebooks/log_ui_traces
+            source: WORKSPACE
+
+          timeout_seconds: 300
+
+      max_concurrent_runs: 1
+
+      email_notifications:
+        on_failure:
+          - vedanthbaliga21@gmail.com
+
+      tags:
+        environment: ${bundle.target}
+        project: demand-forecast
+        layer: mlflow-tracing

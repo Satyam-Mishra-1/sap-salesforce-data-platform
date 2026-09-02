@@ -1,0 +1,24 @@
+name: Warehouse Warmup
+
+# Runs every 8 min between 06:00–23:00 IST (00:30–17:30 UTC)
+# Keeps warehouse below the 10-min auto-stop threshold
+# ~127 runs/day × ~0.1 min each ≈ 18 GitHub Actions minutes/month (free tier = 2000)
+on:
+  schedule:
+    - cron: "*/8 0-17 * * *"    # every 8 min, 00–17 UTC (= 05:30–23:00 IST)
+  workflow_dispatch:             # allow manual trigger from GitHub UI
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping warehouse
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.APP_URL }}/api/warmup")
+          echo "HTTP $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then
+            echo "Warmup returned non-200: $RESPONSE"
+            exit 1
+          fi
